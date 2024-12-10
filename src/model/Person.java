@@ -1,32 +1,9 @@
 package model;
 
-public class Person {
+public record Person(String name, String email, int age, float height) {
 
-    private String name;
-    private String email;
-    private int age;
-    private long height;
-
-    public Person (String name, String email, int age, long height) {
-        this.name = name;
-        this.email = email;
-        this.age = age;
-        this.height = height;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public long getHeight() {
-        return height;
+    @Override
+    public String toString() {
+        return String.format("Name: %s, E-mail: %s, Age: %d, Height: %f", name, email, age, height);
     }
 }

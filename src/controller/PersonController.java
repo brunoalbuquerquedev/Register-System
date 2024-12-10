@@ -3,27 +3,23 @@ package controller;
 import model.Person;
 import view.RegisterView;
 
-import java.util.ArrayList;
+import java.util.TreeMap;
 
 public class PersonController {
 
-    private ArrayList<String> fields;
-
     public PersonController() {
+
     }
 
-    public Person registerNewPerson() {
-        RegisterView register = new RegisterView();
-
-        for (int a = 0; a < fields.size(); a++) {
-            fields.add(register.requestField(a));
-        }
-
-        String name = fields.getFirst();
-        String email = fields.get(1);
-        int age = Integer.parseInt(fields.get(2));
-        long height = Integer.parseInt(fields.get(3));
-
+    public Person registerNewPerson(RegisterView register) {
+        String name = register.requestStringField(0);
+        String email = register.requestStringField(1);
+        int age = register.requestIntField(2);
+        float height = register.requestLongField(3);
         return new Person(name, email, age, height);
+    }
+
+    public Person loadPersonData() {
+        return null;
     }
 }

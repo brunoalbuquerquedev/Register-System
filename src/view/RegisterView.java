@@ -5,14 +5,30 @@ import java.util.TreeMap;
 
 public class RegisterView {
 
-    private TreeMap<Integer, String> fields;
-    Scanner scanner = new Scanner(System.in);
+    private final TreeMap<Integer, String[]> fields;
+    private final Scanner scanner = new Scanner(System.in);
 
-    public RegisterView() {
+    public RegisterView(TreeMap<Integer, String[]> fields) {
+        this.fields = fields;
     }
 
-    public String requestField(int index) {
-        System.out.printf("Enter your %s: ", fields.get(index));
+    public String requestNewField() {
+        System.out.print("Enter the new field name: ");
         return scanner.nextLine();
+    }
+
+    public String requestStringField(int index) {
+        System.out.printf("Enter your %s: ", String.join(" ", fields.get(index)));
+        return scanner.nextLine();
+    }
+
+    public int requestIntField(int index) {
+        System.out.printf("Enter your %s: ", String.join(" ", fields.get(index)));
+        return scanner.nextInt();
+    }
+
+    public float requestLongField(int index) {
+        System.out.printf("Enter your %s: ", String.join(" ", fields.get(index)));
+        return scanner.nextFloat();
     }
 }
