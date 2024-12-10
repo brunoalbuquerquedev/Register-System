@@ -11,6 +11,7 @@ import java.util.TreeMap;
 public class FileManager {
 
     private final String filename = "form.txt";
+    private int n = 1;
 
     public FileManager() {
 
@@ -115,14 +116,11 @@ public class FileManager {
         }
     }
 
-    public void createNewFile(String name, Person person) throws IOException {
+    public String createNewFile(String name, Person person) throws IOException {
         DecimalFormat df = new DecimalFormat("#.##");
-        String filepath = ("data\\").concat(name).concat(".txt");
+        String filepath = ("data\\").concat(n + "-").concat(name).concat(".txt");
         File file = new File(filepath);
-
-        if (!createParentDirectory(file)) {
-            throw new IOException("Could not create a new directory.");
-        }
+        createParentDirectory(file);
 
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
             bw.write(person.name());
@@ -134,12 +132,15 @@ public class FileManager {
             bw.write(df.format(person.height()));
             bw.newLine();
         }
+        n++;
+        return filepath;
     }
 
-    public boolean createParentDirectory(File file) {
+    public void createParentDirectory(File file) throws IOException {
         if (!file.getParentFile().exists()) {
-            return file.getParentFile().mkdirs();
+            if (!file.getParentFile().mkdirs()) {
+                throw new IOException("Could not create a new directory.");
+            }
         }
-        return false;
     }
 }

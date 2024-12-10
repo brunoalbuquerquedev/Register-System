@@ -4,6 +4,7 @@ import model.Person;
 import repository.FileManager;
 import view.RegisterView;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
 import java.util.TreeMap;
@@ -58,7 +59,9 @@ public class Menu {
             System.out.println("Invalid option. Please enter a number.");
             scanner.next();
         }
-        return scanner.nextInt();
+        int option = scanner.nextInt();
+        scanner.nextLine();
+        return option;
     }
 
     private void executeOption(int option) throws IOException {
@@ -86,10 +89,10 @@ public class Menu {
 
     private void registerUser() throws IOException {
         System.out.println("Registering a user...");
-        System.out.println();
         Person person = controller.registerNewPerson(register);
-        String name = person.name().trim().toUpperCase();
-        manager.createNewFile(name, person);
+        String name = person.name().replaceAll(" ", "").toUpperCase();
+        String filepath = manager.createNewFile(name, person);
+        System.out.print(person);
     }
 
     private void listUsers() {

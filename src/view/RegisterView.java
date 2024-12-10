@@ -18,17 +18,27 @@ public class RegisterView {
     }
 
     public String requestStringField(int index) {
-        System.out.printf("Enter your %s: ", String.join(" ", fields.get(index)));
+        System.out.printf(String.join(" ", fields.get(index)));
         return scanner.nextLine();
     }
 
     public int requestIntField(int index) {
-        System.out.printf("Enter your %s: ", String.join(" ", fields.get(index)));
-        return scanner.nextInt();
+        System.out.printf(String.join(" ", fields.get(index)));
+        int result = scanner.nextInt();
+        scanner.nextLine();
+        return result;
     }
 
-    public float requestLongField(int index) {
-        System.out.printf("Enter your %s: ", String.join(" ", fields.get(index)));
-        return scanner.nextFloat();
+    public float requestFloatField(int index) {
+        System.out.printf(String.join(" ", fields.get(index)));
+        float result = scanner.nextFloat();
+        scanner.nextLine();
+        return result;
+    }
+
+    public void printPersonData() {}
+
+    public void printPersonData(String filepath) {
+
     }
 }
