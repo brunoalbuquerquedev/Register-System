@@ -4,8 +4,9 @@ import model.Person;
 import repository.FileManager;
 import view.RegisterView;
 
-import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.TreeMap;
 
@@ -66,51 +67,47 @@ public class Menu {
 
     private void executeOption(int option) throws IOException {
         switch (option) {
-            case 1:
-                registerUser();
-                break;
-            case 2:
-                listUsers();
-                break;
-            case 3:
-                addField();
-                break;
-            case 4:
-                deleteField();
-                break;
-            case 5:
-                searchUsers();
-                break;
-            default:
-                System.out.println("Invalid option.");
-                break;
+            case 1 -> registerUser();
+            case 2 -> listUsers();
+            case 3 -> addField();
+            case 4 -> deleteField();
+            case 5 -> searchUsers();
+            case 6 -> System.out.println("Ending program.");
+            default -> System.out.println("Invalid option.");
         }
     }
 
     private void registerUser() throws IOException {
         System.out.println("Registering a user...");
-        Person person = controller.registerNewPerson(register);
-        String name = person.name().replaceAll(" ", "").toUpperCase();
-        String filepath = manager.createNewFile(name, person);
-        System.out.print(person);
+        Person<Object> person = controller.registerNewPerson(manager, register);
+        manager.createNewFile(person);
+        System.out.println();
+        System.out.println();
     }
 
-    private void listUsers() {
+    private void listUsers() throws IOException {
         System.out.println("Listing all users...");
-        // Logic for listing users
+        controller.loadPersonData(manager, register);
+        System.out.println();
     }
 
-    private void addField() throws IOException {
+    private void addField() {
         String newField = register.requestNewField();
-        manager.addField(newField);
+        try {
+            manager.addField(newField);
+        } catch (Exception e) {
+            System.out.println(Arrays.toString(e.getStackTrace()));
+            return;
+        }
         System.out.println("Field added successfully.");
+        System.out.println();
     }
 
     private void deleteField() throws IOException {
         System.out.print("Enter the field key to delete: ");
         int key = scanner.nextInt();
         manager.deleteField(key);
-        System.out.println("Field deleted successfully.");
+        System.out.println("Person deleted successfully.");
     }
 
     private void searchUsers() {

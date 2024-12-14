@@ -3,15 +3,13 @@ package repository;
 import model.Person;
 
 import java.io.*;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class FileManager {
 
     private final String filename = "form.txt";
-    private int n = 1;
+    private final String directoryPath = "data";
+    private int fileNumber = 1;
 
     public FileManager() {
 
@@ -53,17 +51,35 @@ public class FileManager {
         }
     }
 
-    /**
-     * Writes an array in a file.
-     * @param fields the fields to write.
-     */
-    public void writeFile(ArrayList<String> fields) throws IOException {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename))) {
-            for (String line : fields) {
-                bw.write(line);
-                bw.newLine();
+    public Person<Object> readFile(File file) {
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            Person<Object> p = new Person<>(new TreeMap<>());
+            String s;
+            int index = 0;
+            while ((s = br.readLine()) != null) {
+                p.field().put(index, s);
+                index++;
             }
+            return p;
+        } catch (IOException e) {
+            System.out.println("Can't read file: " + Arrays.toString(e.getStackTrace()));
         }
+        return null;
+    }
+
+    public Integer getFieldsNumber() {
+        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+            ArrayList<String> f = new ArrayList<>();
+            String line;
+            while ((line = br.readLine()) != null) {
+                f.add(line);
+            }
+            String lastField = f.getLast();
+            return Integer.parseInt(String.valueOf(lastField.charAt(0)));
+        } catch (IOException e) {
+            System.out.println(Arrays.toString(e.getStackTrace()));
+        }
+        return null;
     }
 
     /**
@@ -72,7 +88,11 @@ public class FileManager {
      */
     public void addField(String str) throws IOException {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename, true))) {
-            bw.write(str);
+
+            Integer index = getFieldsNumber() + 1;
+            String s = index + ". Enter your " + str + ":";
+            bw.write(s);
+            bw.newLine();
         }
     }
 
@@ -84,22 +104,6 @@ public class FileManager {
         TreeMap<Integer, String[]> fields = getFields();
         fields.remove(key);
         writeFile(fields);
-    }
-
-    /**
-     * Create a new file.
-     * @param filepath the path of the new file.
-     * @param str the content which will be written in the file.
-     */
-    public void createNewFile(String filepath, ArrayList<String> str) throws IOException {
-        File file = new File(filepath);
-
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
-            for (String s : str) {
-                bw.write(s);
-                bw.newLine();
-            }
-        }
     }
 
     /**
@@ -116,31 +120,76 @@ public class FileManager {
         }
     }
 
-    public String createNewFile(String name, Person person) throws IOException {
-        DecimalFormat df = new DecimalFormat("#.##");
-        String filepath = ("data\\").concat(n + "-").concat(name).concat(".txt");
+    /**
+     * Creates a new text file with the person data.
+     * @param person person data.
+     */
+    public void createNewFile(Person<Object> person) throws IOException {
+        Object nameField = person.field().get(0);
+        if (nameField == null) {
+            throw new IllegalArgumentException();
+        }
+
+        int filesQuantity = getFilesQuantity();
+        String name = nameField.toString().replaceAll(" ", "").toUpperCase();
+        String filepath = ("data\\").concat(filesQuantity + "-").concat(name).concat(".txt");
         File file = new File(filepath);
         createParentDirectory(file);
 
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
-            bw.write(person.name());
-            bw.newLine();
-            bw.write(person.email());
-            bw.newLine();
-            bw.write(df.format(person.age()));
-            bw.newLine();
-            bw.write(df.format(person.height()));
-            bw.newLine();
+            for (Integer index : person.field().keySet()) {
+                Object value = person.field().get(index);
+                if (value != null) {
+                    bw.write(value.toString());
+                    bw.newLine();
+                }
+            }
         }
-        n++;
-        return filepath;
     }
 
-    public void createParentDirectory(File file) throws IOException {
+    /**
+     * Create a parent directory if it does not exist.
+     * @param file the reference file.
+     */
+    private void createParentDirectory(File file) throws IOException {
         if (!file.getParentFile().exists()) {
             if (!file.getParentFile().mkdirs()) {
                 throw new IOException("Could not create a new directory.");
             }
         }
+    }
+
+    public ArrayList<Person<Object>> getData(FileManager manager) throws IOException {
+        File directory = new File(directoryPath);
+
+        if (!directory.exists() || !directory.isDirectory()) {
+            System.out.println("Data directory does not exist or is not valid.");
+            return null;
+        }
+
+        File[] files = directory.listFiles(f -> f.isFile() && f.getName().endsWith(".txt"));
+        ArrayList<Person<Object>> persons = new ArrayList<>();
+
+        for (File f : Objects.requireNonNull(files)) {
+            Person<Object> p = manager.readFile(f);
+            persons.add(p);
+        }
+        return persons;
+    }
+
+    public Integer getFilesQuantity() {
+        File directory = new File(directoryPath);
+        File[] files = directory.listFiles(f -> f.isFile() && f.getName().endsWith(".txt"));
+
+        if (files == null || files.length == 0)
+            return 0;
+
+        ArrayList<String> filesNames = new ArrayList<>();
+
+        for (File f : files) {
+            filesNames.add(f.getName());
+        }
+        String lastFileName = filesNames.getLast();
+        return Integer.parseInt(String.valueOf(lastFileName.charAt(0)));
     }
 }

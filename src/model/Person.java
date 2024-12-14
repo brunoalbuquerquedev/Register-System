@@ -1,9 +1,17 @@
 package model;
 
-public record Person(String name, String email, int age, float height) {
+import java.util.Map;
+
+public record Person<T>(Map<Integer, T> field) {
+
+    public Person(Map<Integer, T> field) {
+        this.field = field;
+    }
 
     @Override
     public String toString() {
-        return String.format("Name: %s, E-mail: %s, Age: %d, Height: %f", name, email, age, height);
+        StringBuilder sb = new StringBuilder("Person Details:\n");
+        field.forEach((key, value) -> sb.append("Field ").append(key).append(": ").append(value).append("\n"));
+        return sb.toString().trim();
     }
 }

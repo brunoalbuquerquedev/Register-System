@@ -1,5 +1,7 @@
 package view;
 
+import model.Person;
+
 import java.util.Scanner;
 import java.util.TreeMap;
 
@@ -14,31 +16,58 @@ public class RegisterView {
 
     public String requestNewField() {
         System.out.print("Enter the new field name: ");
+        String s = scanner.nextLine();
+        if (s == null) {
+            throw new IllegalArgumentException("Field cannot be null.");
+        }
+        return s;
+    }
+
+    public String requestField(int index) {
+        if (fields.get(index) == null) {
+            return null;
+        }
+        System.out.printf(String.join(" ", fields.get(index)) + " ");
         return scanner.nextLine();
     }
 
-    public String requestStringField(int index) {
-        System.out.printf(String.join(" ", fields.get(index)));
+    public String requestName() {
+        System.out.printf(String.join(" ", fields.get(0)) + " ");
         return scanner.nextLine();
     }
 
-    public int requestIntField(int index) {
-        System.out.printf(String.join(" ", fields.get(index)));
-        int result = scanner.nextInt();
-        scanner.nextLine();
-        return result;
+    public String requestEmail() {
+        System.out.printf(String.join(" ", fields.get(1)) + " ");
+        String s = scanner.nextLine();
+        char target = '@';
+        if (s.chars().noneMatch(c -> c == target)) {
+            throw new IllegalArgumentException("E-mail should have a '@'.");
+        }
+        return s;
     }
 
-    public float requestFloatField(int index) {
-        System.out.printf(String.join(" ", fields.get(index)));
-        float result = scanner.nextFloat();
+    public Integer requestAge() {
+        System.out.printf(String.join(" ", fields.get(2)) + " ");
+        int a = scanner.nextInt();
         scanner.nextLine();
-        return result;
+        if (a < 18) {
+            throw new IllegalArgumentException("Age cannot be minor than 18.");
+        }
+        return a;
     }
 
-    public void printPersonData() {}
+    public Float requestHeight() {
+        System.out.printf(String.join(" ", fields.get(3)) + " ");
+        float f = scanner.nextFloat();
+        scanner.nextLine();
+        if (f < 1.01) {
+            throw new IllegalArgumentException();
+        }
+        return f;
+    }
 
-    public void printPersonData(String filepath) {
-
+    public void printPersonData(Person<Object> person, int index) {
+        System.out.println("Person " + (index + 1));
+        System.out.println(person.toString());
     }
 }
