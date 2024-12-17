@@ -101,21 +101,18 @@ public class Menu {
     }
 
     private void deleteField() {
-        try {
-            Person<Object> p = manager.readFile(new File(manager.getFilename()));
-            System.out.println(p.fieldToString());
-            System.out.print("Enter the field to delete (only the created fields): ");
-            int key = scanner.nextInt();
-            Integer num = key > 4 ? key : null;
+        Person<Object> p = manager.readFile(new File(manager.getFilename()));
+        System.out.println(p.fieldToString());
+        System.out.print("Enter the field to delete (only the created fields): ");
+        int key = scanner.nextInt();
+        Integer num = key > 4 ? key : null;
 
-            if (num != null)
-                manager.deleteField(num);
-            else
-                System.out.println("Can't delete the default fields.");
-            System.out.println("Person deleted successfully.");
-        } catch (IOException e) {
-            System.out.println("Delete field error." + Arrays.toString(e.getStackTrace()));
-        }
+        if (num != null)
+            manager.deleteField(num - 1);
+        else
+            System.out.println("Can't delete the default fields.");
+
+        System.out.println("Person deleted successfully.");
     }
 
     private void searchUsers() {
@@ -127,7 +124,7 @@ public class Menu {
             if (list.isEmpty()) {
                 System.out.println("No data found.");
             } else if (s.chars().noneMatch(c -> c == '@')) {
-                System.out.println("The user register was found in the system. The user name is " + list.getFirst());
+                System.out.println("The user register was found in the system. The user name is " + list.getFirst() + ".");
             }
         } catch (IOException e) {
             System.out.println("Could not search the user." + Arrays.toString(e.getStackTrace()));

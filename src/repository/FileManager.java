@@ -39,13 +39,15 @@ public class FileManager {
      * Writes a string in a file.
      * @param fields the fields to write.
      */
-    public void writeFile(TreeMap<Integer, String[]> fields) throws IOException {
+    public void writeNewForm(TreeMap<Integer, String[]> fields) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename))) {
             for (Map.Entry<Integer, String[]> entry : fields.entrySet()) {
                 String line = String.join(" ", entry.getValue());
                 bw.write(line);
                 bw.newLine();
             }
+        } catch (Exception e) {
+            System.out.println("Write file error." + Arrays.toString(e.getStackTrace()));
         }
     }
 
@@ -62,6 +64,8 @@ public class FileManager {
             return p;
         } catch (IOException e) {
             System.out.println("Can't read file: " + Arrays.toString(e.getStackTrace()));
+        } catch (Exception e) {
+            System.out.println("Read file error." + Arrays.toString(e.getStackTrace()));
         }
         return null;
     }
@@ -101,10 +105,15 @@ public class FileManager {
      * Remove a field from a file.
      * @param key The field's key, which will be removed.
      */
-    public void deleteField(Integer key) throws IOException {
-        TreeMap<Integer, String[]> fields = getFields();
-        fields.remove(key);
-        writeFile(fields);
+    public void deleteField(Integer key) {
+        try {
+            TreeMap<Integer, String[]> fields = getFields();
+            fields.remove(key);
+            deleteFile(filename);
+            writeNewForm(fields);
+        } catch (Exception e) {
+            System.out.println("Delete file error." + Arrays.toString(e.getStackTrace()));
+        }
     }
 
     /**
@@ -158,10 +167,10 @@ public class FileManager {
      * Create a parent directory if it does not exist.
      * @param file the reference file.
      */
-    private void createParentDirectory(File file) throws IOException {
+    private void createParentDirectory(File file) {
         if (!file.getParentFile().exists()) {
             if (!file.getParentFile().mkdirs()) {
-                throw new IOException("Could not create a new directory.");
+                throw new RuntimeException("Could not create a new directory.");
             }
         }
     }
@@ -226,10 +235,14 @@ public class FileManager {
         return arr;
     }
 
-    public List<String> userSearch(String str) throws IOException {
-        ArrayList<String> arr = getNameOrEmail(str);
-        return arr.stream()
-                .filter(s -> s.toLowerCase().contains(str.toLowerCase()))
-                .collect(Collectors.toList());
+    public List<String> userSearch(String str)  {
+        try {
+            ArrayList<String> arr = getNameOrEmail(str);
+            return arr.stream()
+                    .filter(s -> s.toLowerCase().contains(str.toLowerCase()))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            System.out.println("User search error." + Arrays.toString(e.getStackTrace()));
+        }
     }
 }
