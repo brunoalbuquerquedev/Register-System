@@ -4,15 +4,14 @@ import model.Person;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class FileManager {
 
     private final String filename = "form.txt";
     private final String directoryPath = "data";
-    private int fileNumber = 1;
 
     public FileManager() {
-
     }
 
     public String getFilename() {
@@ -20,7 +19,7 @@ public class FileManager {
     }
 
     /**
-     * Get the fields in a file.
+     * Get the fields.
      * @return an array list with the file fields.
      */
     public TreeMap<Integer, String[]> getFields() throws IOException {
@@ -28,7 +27,6 @@ public class FileManager {
             TreeMap<Integer, String[]> fields = new TreeMap<>();
             String line;
             int index = 0;
-
             while ((line = br.readLine()) != null) {
                 fields.put(index, line.split(" "));
                 index++;
@@ -56,6 +54,7 @@ public class FileManager {
             Person<Object> p = new Person<>(new TreeMap<>());
             String s;
             int index = 0;
+
             while ((s = br.readLine()) != null) {
                 p.field().put(index, s);
                 index++;
@@ -71,11 +70,14 @@ public class FileManager {
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             ArrayList<String> f = new ArrayList<>();
             String line;
+
             while ((line = br.readLine()) != null) {
                 f.add(line);
             }
+
             String lastField = f.getLast();
             return Integer.parseInt(String.valueOf(lastField.charAt(0)));
+
         } catch (IOException e) {
             System.out.println(Arrays.toString(e.getStackTrace()));
         }
@@ -88,7 +90,6 @@ public class FileManager {
      */
     public void addField(String str) throws IOException {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename, true))) {
-
             Integer index = getFieldsNumber() + 1;
             String s = index + ". Enter your " + str + ":";
             bw.write(s);
@@ -126,11 +127,16 @@ public class FileManager {
      */
     public void createNewFile(Person<Object> person) throws IOException {
         Object nameField = person.field().get(0);
-        if (nameField == null) {
-            throw new IllegalArgumentException();
-        }
+        if (nameField == null)
+            throw new IllegalArgumentException("File name is null.");
 
-        int filesQuantity = getFilesQuantity();
+        Integer filesQuantity = getFilesQuantity();
+
+        if (filesQuantity == null)
+            return;
+        else
+            filesQuantity++;
+
         String name = nameField.toString().replaceAll(" ", "").toUpperCase();
         String filepath = ("data\\").concat(filesQuantity + "-").concat(name).concat(".txt");
         File file = new File(filepath);
@@ -139,6 +145,7 @@ public class FileManager {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
             for (Integer index : person.field().keySet()) {
                 Object value = person.field().get(index);
+
                 if (value != null) {
                     bw.write(value.toString());
                     bw.newLine();
@@ -159,7 +166,7 @@ public class FileManager {
         }
     }
 
-    public ArrayList<Person<Object>> getData(FileManager manager) throws IOException {
+    public ArrayList<Person<Object>> getData(FileManager manager) {
         File directory = new File(directoryPath);
 
         if (!directory.exists() || !directory.isDirectory()) {
@@ -181,15 +188,48 @@ public class FileManager {
         File directory = new File(directoryPath);
         File[] files = directory.listFiles(f -> f.isFile() && f.getName().endsWith(".txt"));
 
-        if (files == null || files.length == 0)
+        if (files == null)
+            return null;
+        else if (files.length == 0)
             return 0;
 
-        ArrayList<String> filesNames = new ArrayList<>();
-
+        ArrayList<Integer> n = new ArrayList<>();
         for (File f : files) {
-            filesNames.add(f.getName());
+            String s = f.getName();
+
+            if (!Character.isDigit(s.charAt(0)))
+                throw new NumberFormatException("Digit not found.");
+            else
+                n.add(Integer.parseInt(String.valueOf(f.getName().charAt(0))));
         }
-        String lastFileName = filesNames.getLast();
-        return Integer.parseInt(String.valueOf(lastFileName.charAt(0)));
+        return n.stream().mapToInt(Integer::intValue).max().orElseThrow(
+                () -> new IllegalArgumentException("Digit not found"));
+    }
+
+    public ArrayList<String> getNameOrEmail(String str) {
+        ArrayList<Person<Object>> persons = getData(this);
+        ArrayList<String> arr = new ArrayList<>();
+        int index = 0;
+
+        if (str.chars().anyMatch(c -> c == '@'))
+            index = 1;
+
+        for (Person<Object> p : persons) {
+            String r = String.valueOf(p.field().get(index));
+            String[] n = r.trim().split("\\s+");
+
+            if (n.length > 1)
+                r = n[0] + " " + n[n.length - 1];
+
+            arr.add(r);
+        }
+        return arr;
+    }
+
+    public List<String> userSearch(String str) throws IOException {
+        ArrayList<String> arr = getNameOrEmail(str);
+        return arr.stream()
+                .filter(s -> s.toLowerCase().contains(str.toLowerCase()))
+                .collect(Collectors.toList());
     }
 }

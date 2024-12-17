@@ -14,20 +14,19 @@ public class PersonController {
 
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> Person<T> registerNewPerson(FileManager manager, RegisterView register) {
-        Person<T> p = new Person<>(new TreeMap<>());
+    public Person<Object> registerNewPerson(RegisterView register) {
+        Person<java.lang.Object> p = new Person<>(new TreeMap<>());
         try {
-            p.field().put(0, (T) register.requestName());
-            p.field().put(1, (T) register.requestEmail());
-            p.field().put(2, (T) register.requestAge());
-            p.field().put(3, (T) register.requestHeight());
+            p.field().put(0, register.requestName());
+            p.field().put(1, register.requestEmail());
+            p.field().put(2, register.requestAge());
+            p.field().put(3, register.requestHeight());
 
             String l;
             int index = 4;
 
             while ((l = register.requestField(index)) != null) {
-                p.field().put((index), (T) l);
+                p.field().put((index), l);
                 index++;
             }
         } catch (RuntimeException e) {

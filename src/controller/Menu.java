@@ -4,24 +4,20 @@ import model.Person;
 import repository.FileManager;
 import view.RegisterView;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Scanner;
-import java.util.TreeMap;
+import java.util.*;
 
 public class Menu {
 
     private final PersonController controller;
     private final FileManager manager;
     private final RegisterView register;
-    private final TreeMap<Integer, String[]> fields;
     private final Scanner scanner = new Scanner(System.in);
 
     public Menu(PersonController controller, FileManager manager, TreeMap<Integer, String[]> fields) {
         this.controller = controller;
         this.manager = manager;
-        this.fields = fields;
         this.register = new RegisterView(fields);
         menu();
     }
@@ -30,12 +26,7 @@ public class Menu {
         while (true) {
             showOptions();
             int option = getUserOption();
-
-            try {
-                executeOption(option);
-            } catch (IOException e) {
-                System.out.println("Error: " + e.getMessage());
-            }
+            executeOption(option);
 
             if (option == 6) {
                 System.out.println("Ending the system.");
@@ -65,7 +56,7 @@ public class Menu {
         return option;
     }
 
-    private void executeOption(int option) throws IOException {
+    private void executeOption(int option) {
         switch (option) {
             case 1 -> registerUser();
             case 2 -> listUsers();
@@ -77,18 +68,25 @@ public class Menu {
         }
     }
 
-    private void registerUser() throws IOException {
-        System.out.println("Registering a user...");
-        Person<Object> person = controller.registerNewPerson(manager, register);
-        manager.createNewFile(person);
-        System.out.println();
-        System.out.println();
+    private void registerUser() {
+        try {
+            System.out.println("Registering a user...");
+            Person<Object> person = controller.registerNewPerson(register);
+            manager.createNewFile(person);
+            System.out.println("User registered successfully.");
+        } catch (IOException e) {
+            System.out.println("Register user error." + Arrays.toString(e.getStackTrace()));
+        }
     }
 
-    private void listUsers() throws IOException {
-        System.out.println("Listing all users...");
-        controller.loadPersonData(manager, register);
-        System.out.println();
+    private void listUsers() {
+        try {
+            System.out.println("Listing all users...");
+            controller.loadPersonData(manager, register);
+            System.out.println();
+        } catch (IOException e) {
+            System.out.println("Error when list users." + Arrays.toString(e.getStackTrace()));
+        }
     }
 
     private void addField() {
@@ -100,18 +98,39 @@ public class Menu {
             return;
         }
         System.out.println("Field added successfully.");
-        System.out.println();
     }
 
-    private void deleteField() throws IOException {
-        System.out.print("Enter the field key to delete: ");
-        int key = scanner.nextInt();
-        manager.deleteField(key);
-        System.out.println("Person deleted successfully.");
+    private void deleteField() {
+        try {
+            Person<Object> p = manager.readFile(new File(manager.getFilename()));
+            System.out.println(p.fieldToString());
+            System.out.print("Enter the field to delete (only the created fields): ");
+            int key = scanner.nextInt();
+            Integer num = key > 4 ? key : null;
+
+            if (num != null)
+                manager.deleteField(num);
+            else
+                System.out.println("Can't delete the default fields.");
+            System.out.println("Person deleted successfully.");
+        } catch (IOException e) {
+            System.out.println("Delete field error." + Arrays.toString(e.getStackTrace()));
+        }
     }
 
     private void searchUsers() {
-        System.out.println("Searching for users...");
-        // Logic for searching users
+        try {
+            System.out.println("Searching for users...");
+            String s = register.searchName();
+            List<String> list = manager.userSearch(s);
+
+            if (list.isEmpty()) {
+                System.out.println("No data found.");
+            } else if (s.chars().noneMatch(c -> c == '@')) {
+                System.out.println("The user register was found in the system. The user name is " + list.getFirst());
+            }
+        } catch (IOException e) {
+            System.out.println("Could not search the user." + Arrays.toString(e.getStackTrace()));
+        }
     }
 }

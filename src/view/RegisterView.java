@@ -33,7 +33,10 @@ public class RegisterView {
 
     public String requestName() {
         System.out.printf(String.join(" ", fields.get(0)) + " ");
-        return scanner.nextLine();
+        String name = scanner.nextLine();
+        if (name.length() < 10)
+            throw new IllegalArgumentException("Please enter your full name.");
+        return name;
     }
 
     public String requestEmail() {
@@ -48,12 +51,12 @@ public class RegisterView {
 
     public Integer requestAge() {
         System.out.printf(String.join(" ", fields.get(2)) + " ");
-        int a = scanner.nextInt();
+        int age = scanner.nextInt();
         scanner.nextLine();
-        if (a < 18) {
+        if (age < 18) {
             throw new IllegalArgumentException("Age cannot be minor than 18.");
         }
-        return a;
+        return age;
     }
 
     public Float requestHeight() {
@@ -67,7 +70,11 @@ public class RegisterView {
     }
 
     public void printPersonData(Person<Object> person, int index) {
-        System.out.println("Person " + (index + 1));
-        System.out.println(person.toString());
+        System.out.println((index + 1) + ". " + person.field().get(0).toString());
+    }
+
+    public String searchName() {
+        System.out.println("Enter the name or e-mail to search: ");
+        return scanner.nextLine();
     }
 }
