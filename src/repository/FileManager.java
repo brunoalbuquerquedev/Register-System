@@ -1,6 +1,6 @@
 package repository;
 
-import model.Person;
+import model.User;
 
 import java.io.*;
 import java.util.*;
@@ -8,22 +8,41 @@ import java.util.stream.Collectors;
 
 public class FileManager {
 
-    private final String filename = "form.txt";
+    private final String filenamePath = "form.txt";
     private final String directoryPath = "data";
 
     public FileManager() {
     }
 
-    public String getFilename() {
-        return filename;
+    public String getFilenamePath() {
+        return filenamePath;
+    }
+
+    /**
+     * Create the form file and the directory data.
+     */
+    public void initiateSystemRepos() {
+        try {
+            File file = new File(filenamePath);
+            File directory = new File(directoryPath + "\\" + filenamePath);
+
+            if (!file.exists())
+                addField("name", "e-mail", "age", "height");
+
+            if (!directory.exists())
+                createParentDirectory(directory);
+
+        } catch (IOException e) {
+            System.out.println("Can't create a new form file." + Arrays.toString(e.getStackTrace()));
+        }
     }
 
     /**
      * Get the fields.
      * @return an array list with the file fields.
      */
-    public TreeMap<Integer, String[]> getFields() throws IOException {
-        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+    public TreeMap<Integer, String[]> getFields() {
+        try (BufferedReader br = new BufferedReader(new FileReader(filenamePath))) {
             TreeMap<Integer, String[]> fields = new TreeMap<>();
             String line;
             int index = 0;
@@ -32,28 +51,37 @@ public class FileManager {
                 index++;
             }
             return fields;
+        } catch (Exception e) {
+            System.out.println("Error to get fields from form.txt " + Arrays.toString(e.getStackTrace()));
         }
+        return null;
     }
 
     /**
      * Writes a string in a file.
      * @param fields the fields to write.
      */
-    public void writeNewForm(TreeMap<Integer, String[]> fields) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename))) {
+    public void writeForm(TreeMap<Integer, String[]> fields) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filenamePath))) {
             for (Map.Entry<Integer, String[]> entry : fields.entrySet()) {
                 String line = String.join(" ", entry.getValue());
                 bw.write(line);
                 bw.newLine();
+                bw.flush();
             }
         } catch (Exception e) {
             System.out.println("Write file error." + Arrays.toString(e.getStackTrace()));
         }
     }
 
-    public Person<Object> readFile(File file) {
+    /**
+     * Reads file's lines.
+     * @param file the file to read.
+     * @return a <code>User</code> object that contains all file's lines.
+     */
+    public User<Object> readFile(File file) {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            Person<Object> p = new Person<>(new TreeMap<>());
+            User<Object> p = new User<>(new TreeMap<>());
             String s;
             int index = 0;
 
@@ -70,14 +98,21 @@ public class FileManager {
         return null;
     }
 
+    /**
+     * Get the number of fields the form has.
+     * @return the number of fields.
+     */
     public Integer getFieldsNumber() {
-        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(filenamePath))) {
             ArrayList<String> f = new ArrayList<>();
             String line;
 
             while ((line = br.readLine()) != null) {
                 f.add(line);
             }
+
+            if (f.isEmpty())
+                return 0;
 
             String lastField = f.getLast();
             return Integer.parseInt(String.valueOf(lastField.charAt(0)));
@@ -92,36 +127,39 @@ public class FileManager {
      * Add a new field to a file.
      * @param str the string which will be added.
      */
-    public void addField(String str) throws IOException {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename, true))) {
+    public void addField(String... str) throws IOException {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filenamePath, true))) {
             Integer index = getFieldsNumber() + 1;
-            String s = index + ". Enter your " + str + ":";
-            bw.write(s);
-            bw.newLine();
+            for (String s : str) {
+                s = index + ". Enter your " + s + ": ";
+                bw.write(s);
+                bw.newLine();
+                bw.flush();
+                index++;
+            }
         }
     }
 
     /**
      * Remove a field from a file.
-     * @param key The field's key, which will be removed.
+     * @param key the field's key, which will be removed.
      */
     public void deleteField(Integer key) {
         try {
             TreeMap<Integer, String[]> fields = getFields();
             fields.remove(key);
-            deleteFile(filename);
-            writeNewForm(fields);
+            deleteForm();
+            writeForm(fields);
         } catch (Exception e) {
             System.out.println("Delete file error." + Arrays.toString(e.getStackTrace()));
         }
     }
 
     /**
-     * Delete a file.
-     * @param pathname the path of the file which will be deleted.
+     * Delete the form file.
      */
-    public void deleteFile(String pathname) {
-        File file = new File(pathname);
+    private void deleteForm() {
+        File file = new File(filenamePath);
 
         if (file.delete()) {
             System.out.println("File successfully deleted.");
@@ -132,39 +170,44 @@ public class FileManager {
 
     /**
      * Creates a new text file with the person data.
-     * @param person person data.
+     * @param user user data.
      */
-    public void createNewFile(Person<Object> person) throws IOException {
-        Object nameField = person.field().get(0);
-        if (nameField == null)
-            throw new IllegalArgumentException("File name is null.");
+    public void createNewFile(User<Object> user) throws IOException {
+        try {
+            Object nameField = user.field().get(0);
+            if (nameField == null)
+                throw new IllegalArgumentException("File name is null.");
 
-        Integer filesQuantity = getFilesQuantity();
+            Integer filesQuantity = getFilesNumber();
 
-        if (filesQuantity == null)
-            return;
-        else
-            filesQuantity++;
+            if (filesQuantity == null)
+                return;
+            else
+                filesQuantity++;
 
-        String name = nameField.toString().replaceAll(" ", "").toUpperCase();
-        String filepath = ("data\\").concat(filesQuantity + "-").concat(name).concat(".txt");
-        File file = new File(filepath);
-        createParentDirectory(file);
+            String name = nameField.toString().replaceAll(" ", "").toUpperCase();
+            String filepath = ("data\\").concat(filesQuantity + "-").concat(name).concat(".txt");
+            File file = new File(filepath);
+            createParentDirectory(file);
 
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
-            for (Integer index : person.field().keySet()) {
-                Object value = person.field().get(index);
+            try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+                for (Integer index : user.field().keySet()) {
+                    Object value = user.field().get(index);
 
-                if (value != null) {
-                    bw.write(value.toString());
-                    bw.newLine();
+                    if (value != null) {
+                        bw.write(value.toString());
+                        bw.newLine();
+                        bw.flush();
+                    }
                 }
             }
+        } catch (Exception e) {
+            System.out.println("Create new file error. " + Arrays.toString(e.getStackTrace()));
         }
     }
 
     /**
-     * Create a parent directory if it does not exist.
+     * Create a parent directory.
      * @param file the reference file.
      */
     private void createParentDirectory(File file) {
@@ -175,7 +218,11 @@ public class FileManager {
         }
     }
 
-    public ArrayList<Person<Object>> getData(FileManager manager) {
+    /**
+     * Get the data inside the fold "data".
+     * @return a list of all user's data.
+     */
+    public ArrayList<User<Object>> getData() {
         File directory = new File(directoryPath);
 
         if (!directory.exists() || !directory.isDirectory()) {
@@ -184,16 +231,19 @@ public class FileManager {
         }
 
         File[] files = directory.listFiles(f -> f.isFile() && f.getName().endsWith(".txt"));
-        ArrayList<Person<Object>> persons = new ArrayList<>();
+        ArrayList<User<Object>> users = new ArrayList<>();
 
         for (File f : Objects.requireNonNull(files)) {
-            Person<Object> p = manager.readFile(f);
-            persons.add(p);
+            User<Object> p = readFile(f);
+            users.add(p);
         }
-        return persons;
+        return users;
     }
 
-    public Integer getFilesQuantity() {
+    /**
+     * Get the number of files in data.
+     */
+    private Integer getFilesNumber() {
         File directory = new File(directoryPath);
         File[] files = directory.listFiles(f -> f.isFile() && f.getName().endsWith(".txt"));
 
@@ -215,15 +265,18 @@ public class FileManager {
                 () -> new IllegalArgumentException("Digit not found"));
     }
 
-    public ArrayList<String> getNameOrEmail(String str) {
-        ArrayList<Person<Object>> persons = getData(this);
+    /**
+     * Get the name or e-mail, based on what the player chose.
+     */
+    private ArrayList<String> getNameOrEmail(String str) {
+        ArrayList<User<Object>> users = getData();
         ArrayList<String> arr = new ArrayList<>();
         int index = 0;
 
         if (str.chars().anyMatch(c -> c == '@'))
             index = 1;
 
-        for (Person<Object> p : persons) {
+        for (User<Object> p : users) {
             String r = String.valueOf(p.field().get(index));
             String[] n = r.trim().split("\\s+");
 
@@ -235,7 +288,7 @@ public class FileManager {
         return arr;
     }
 
-    public List<String> userSearch(String str)  {
+    public List<String> userSearch(String str) {
         try {
             ArrayList<String> arr = getNameOrEmail(str);
             return arr.stream()
@@ -244,5 +297,6 @@ public class FileManager {
         } catch (Exception e) {
             System.out.println("User search error." + Arrays.toString(e.getStackTrace()));
         }
+        return null;
     }
 }

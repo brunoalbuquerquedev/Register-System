@@ -1,6 +1,6 @@
 package view;
 
-import model.Person;
+import model.User;
 
 import java.util.Scanner;
 import java.util.TreeMap;
@@ -69,8 +69,8 @@ public class RegisterView {
         return f;
     }
 
-    public void printPersonData(Person<Object> person, int index) {
-        System.out.println((index + 1) + ". " + person.field().get(0).toString());
+    public void printPersonData(User<Object> user, int index) {
+        System.out.println((index + 1) + ". " + user.field().get(0).toString());
     }
 
     public String searchName() {

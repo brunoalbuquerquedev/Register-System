@@ -2,9 +2,9 @@ package model;
 
 import java.util.Map;
 
-public record Person<T>(Map<Integer, T> field) {
+public record User<T>(Map<Integer, T> field) {
 
-    public Person(Map<Integer, T> field) {
+    public User(Map<Integer, T> field) {
         this.field = field;
     }
 
@@ -16,7 +16,7 @@ public record Person<T>(Map<Integer, T> field) {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("Person Details:\n");
+        StringBuilder sb = new StringBuilder("User Details:\n");
         field.forEach((key, value) -> sb.append("Field ").append(key).append(": ").append(value).append("\n"));
         return sb.toString().trim();
     }

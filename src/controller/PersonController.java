@@ -1,10 +1,9 @@
 package controller;
 
-import model.Person;
+import model.User;
 import repository.FileManager;
 import view.RegisterView;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
@@ -14,9 +13,9 @@ public class PersonController {
 
     }
 
-    public Person<Object> registerNewPerson(RegisterView register) {
-        Person<java.lang.Object> p = new Person<>(new TreeMap<>());
+    public User<Object> registerNewPerson(RegisterView register) {
         try {
+            User<Object> p = new User<>(new TreeMap<>());
             p.field().put(0, register.requestName());
             p.field().put(1, register.requestEmail());
             p.field().put(2, register.requestAge());
@@ -29,17 +28,21 @@ public class PersonController {
                 p.field().put((index), l);
                 index++;
             }
+            return p;
         } catch (RuntimeException e) {
+            System.out.println(e.getMessage());
             return null;
         }
-        return p;
     }
 
-    public void loadPersonData(FileManager manager, RegisterView register) throws IOException {
-        ArrayList<Person<Object>> people = manager.getData(manager);
+    public void loadUserData(FileManager manager, RegisterView register) {
+        ArrayList<User<Object>> users = manager.getData();
         int index = 0;
 
-        for (Person<Object> obj : people) {
+        if (users.isEmpty())
+            return;
+
+        for (User<Object> obj : users) {
             register.printPersonData(obj, index);
             index++;
         }

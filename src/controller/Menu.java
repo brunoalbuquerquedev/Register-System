@@ -1,12 +1,15 @@
 package controller;
 
-import model.Person;
+import model.User;
 import repository.FileManager;
 import view.RegisterView;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
+import java.util.TreeMap;
 
 public class Menu {
 
@@ -71,10 +74,10 @@ public class Menu {
     private void registerUser() {
         try {
             System.out.println("Registering a user...");
-            Person<Object> person = controller.registerNewPerson(register);
-            manager.createNewFile(person);
+            User<Object> user = controller.registerNewPerson(register);
+            manager.createNewFile(user);
             System.out.println("User registered successfully.");
-        } catch (IOException e) {
+        } catch (IOException | NullPointerException e) {
             System.out.println("Register user error." + Arrays.toString(e.getStackTrace()));
         }
     }
@@ -82,16 +85,16 @@ public class Menu {
     private void listUsers() {
         try {
             System.out.println("Listing all users...");
-            controller.loadPersonData(manager, register);
+            controller.loadUserData(manager, register);
             System.out.println();
-        } catch (IOException e) {
+        } catch (NullPointerException e) {
             System.out.println("Error when list users." + Arrays.toString(e.getStackTrace()));
         }
     }
 
     private void addField() {
-        String newField = register.requestNewField();
         try {
+            String newField = register.requestNewField();
             manager.addField(newField);
         } catch (Exception e) {
             System.out.println(Arrays.toString(e.getStackTrace()));
@@ -101,18 +104,22 @@ public class Menu {
     }
 
     private void deleteField() {
-        Person<Object> p = manager.readFile(new File(manager.getFilename()));
-        System.out.println(p.fieldToString());
-        System.out.print("Enter the field to delete (only the created fields): ");
-        int key = scanner.nextInt();
-        Integer num = key > 4 ? key : null;
+        try {
+            User<Object> p = manager.readFile(new File(manager.getFilenamePath()));
+            System.out.println(p.fieldToString());
+            System.out.print("Enter the field to delete (only the created fields): ");
+            int key = scanner.nextInt();
+            Integer num = key > 4 ? key : null;
 
-        if (num != null)
-            manager.deleteField(num - 1);
-        else
-            System.out.println("Can't delete the default fields.");
-
-        System.out.println("Person deleted successfully.");
+            if (num != null) {
+                manager.deleteField(num - 1);
+                System.out.println("Person deleted successfully.");
+            } else {
+                System.out.println("Can't delete the default fields.");
+            }
+        } catch (NullPointerException e) {
+            System.out.println("Delete field error. " + Arrays.toString(e.getStackTrace()));
+        }
     }
 
     private void searchUsers() {
@@ -126,8 +133,8 @@ public class Menu {
             } else if (s.chars().noneMatch(c -> c == '@')) {
                 System.out.println("The user register was found in the system. The user name is " + list.getFirst() + ".");
             }
-        } catch (IOException e) {
-            System.out.println("Could not search the user." + Arrays.toString(e.getStackTrace()));
+        } catch (NullPointerException e) {
+            System.out.println("Search user error. " + Arrays.toString(e.getStackTrace()));
         }
     }
 }
